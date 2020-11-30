@@ -11,6 +11,7 @@ import threading
 load_dotenv()
 BLYNK_AUTH_TOKEN = os.environ['BLYNK_AUTH_TOKEN']
 PIN = int(os.environ['PIN'])
+VPIN_RATIO = 0
 VPIN_CONCENT = 1
 VPIN_UGM3 = 2
 
@@ -29,7 +30,7 @@ GPIO.setwarnings(False)
 def get_sensor_data(vpin_num):
     th = threading.Thread(target=get_pm25, args=(PIN,))
     th.start()
-    print(threading.active_count())
+    print('active thread:', threading.active_count())
 
 # HIGH or LOWの時計測
 def pulseIn(PIN, start=1, end=0):
@@ -77,6 +78,7 @@ def get_pm25(PIN):
             print(concent, " [pcs/0.01cf]")
             print(pcs2ugm3(concent), " [ug/m^3]")
             print("-------------------")
+            blynk.virtual_write(VPIN_RATIO, ratio)
             blynk.virtual_write(VPIN_CONCENT, concent)
             blynk.virtual_write(VPIN_UGM3, pcs2ugm3(concent))
             break
