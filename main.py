@@ -29,6 +29,7 @@ GPIO.setwarnings(False)
 def get_sensor_data(vpin_num):
     th = threading.Thread(target=get_pm25, args=(PIN,))
     th.start()
+    print(threading.active_count())
 
 # HIGH or LOWの時計測
 def pulseIn(PIN, start=1, end=0):
