@@ -6,12 +6,17 @@ import time
 import blynklib
 from blynktimer import Timer
 from dotenv import load_dotenv
+import threading
 
 load_dotenv()
 BLYNK_AUTH_TOKEN = os.environ['BLYNK_AUTH_TOKEN']
 PIN = int(os.environ['PIN'])
 VPIN_CONCENT = 1
 VPIN_UGM3 = 2
+
+INTERVAL=30
+MEASURING_TIME=30
+
 blynk = blynklib.Blynk(BLYNK_AUTH_TOKEN)
 timer = Timer()
 
@@ -20,9 +25,10 @@ GPIO.setup(PIN, GPIO.IN)
 GPIO.setwarnings(False)
 
 
-@timer.register(vpin_num=0, interval=5, run_once=False)
+@timer.register(vpin_num=0, interval=INTERVAL, run_once=False)
 def get_sensor_data(vpin_num):
-    get_pm25(PIN)
+    th = threading.Thread(target=get_pm25, args=(PIN,))
+    th.start()
 
 # HIGH or LOWの時計測
 def pulseIn(PIN, start=1, end=0):
@@ -54,7 +60,7 @@ def pcs2ugm3 (pcs):
 def get_pm25(PIN):
     t0 = time.time()
     t = 0
-    ts = 5 # サンプリング時間
+    ts = MEASURING_TIME # サンプリング時間
     while(1):
         # LOW状態の時間tを求める
         dt = pulseIn(PIN, 0)
@@ -74,39 +80,8 @@ def get_pm25(PIN):
             blynk.virtual_write(VPIN_UGM3, pcs2ugm3(concent))
             break
 
-#@blynk.VIRTUAL_WRITE(1)
-#def my_write_handler(value):
-#    print('Current V1 value: {}'.format(value))
-
-#@blynk.VIRTUAL_READ(VPIN)
-@blynk.handle_event('read V{}'.format(VPIN_CONCENT))
-def my_read_handler():
-    # this widget will show some time in seconds..
-    #blynk.virtual_write(2, int(time.time()))
-    get_pm25(PIN)
-
-
-@blynk.handle_event('write V0')
-def my_write_handler(value):
-    print value
-    get_pm25(PIN)
-
 
 if __name__ == "__main__":
-    #load_dotenv()
-    #BLYNK_AUTH_TOKEN = os.environ['BLYNK_AUTH_TOKEN']
-    #PIN = os.environ['PIN']
-
-    #blynk = blynklib.Blynk(BLYNK_AUTH_TOKEN)
-    #
-    #GPIO.setmode(GPIO.BCM)
-    #GPIO.setup(PIN, GPIO.IN)
-    #GPIO.setwarnings(False)
-    
-    #for i in range(10):
-    #    get_pm25(PIN)
-    
-    #GPIO.cleanup()
     while True:
         blynk.run()
         timer.run()
