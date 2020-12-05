@@ -71,6 +71,11 @@ def get_pm25(PIN):
         if ((time.time() - t0) > ts):
             # LOWの割合[0-100%]
             ratio = (100*t)/ts
+            # 異常な値になる場合、writeしない
+            if ratio > 100 and ratio < 0:
+                print("Abnormal value detected: ", ratio)
+                print("-------------------")
+                break
             # ほこりの濃度を算出
             concent = 1.1 * pow(ratio,3) - 3.8 * pow(ratio,2) + 520 * ratio + 0.62
             print(t, "[sec]")
